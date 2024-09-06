@@ -1,4 +1,3 @@
-from datetime import datetime
 import sqlite3
 
 DB_NAME = "metrics.db"
@@ -15,14 +14,10 @@ def init_db():
     cursor.execute(sql)
 
 
-def save_metric(metrics: dict):
+def save_metric(metrics: list):
     conn = connect()
     cursor = conn.cursor()
     sql = "INSERT INTO func_metrics VALUES(?, ?, ?, ?, ?)"
 
-    sql_params = [
-        (key, val.get("num_calls"), val.get("num_errors"), val.get("avg_exec_time"), datetime.now())
-        for key, val in metrics.items()
-    ]
-    cursor.executemany(sql, sql_params)
+    cursor.executemany(sql, metrics)
     conn.commit()

@@ -1,8 +1,10 @@
 import time
-import multiprocessing
+import threading
 
 from metrics_decorator import metrics_collector
 from db import init_db
+
+SAVE_METRICS_PERIOD_SECS = 5
 
 
 @metrics_collector
@@ -19,9 +21,16 @@ def my_function(secs):
         raise Exception("mock error")
 
 
+def save_metrics_period():
+    while True:
+        time.sleep(SAVE_METRICS_PERIOD_SECS)
+        metrics_collector.save_metrics()
+
+
 if __name__ == "__main__":
     init_db()
-    multiprocessing.set_start_method("spawn")
+
+    threading.Thread(target=save_metrics_period).start()
 
     example_function(1)
     example_function(2)
@@ -32,13 +41,6 @@ if __name__ == "__main__":
     my_function(1)
     my_function(2)
 
-    metrics = metrics_collector.get_metrics("example_function")
-    print(metrics)
-    metrics = metrics_collector.get_metrics("my_function")
-    print(metrics)
-
-    metrics_collector.save_metrics_in_background()
-
     # -----------------
     example_function(1)
     example_function(3)
@@ -46,10 +48,3 @@ if __name__ == "__main__":
     my_function(1)
     my_function(2)
     my_function(1)
-
-    metrics = metrics_collector.get_metrics("example_function")
-    print(metrics)
-    metrics = metrics_collector.get_metrics("my_function")
-    print(metrics)
-
-    metrics_collector.save_metrics_in_background()
